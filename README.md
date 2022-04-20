@@ -8,7 +8,7 @@ Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) f
 
 ## Usage
 
-1. Init and populate configuration
+**1. Init and populate configuration**
 
 This step is optional, and if you don't do this, your home directory will be used for search.
 The config lives in you config directory with name `repo.yml`.
@@ -30,7 +30,7 @@ roots:
     depth: 2
 ```
 
-2. Add shell completions
+**2. Add shell completions**
 
 Put following in you `~/.zshrc`. The default binding is `z` but you can change it.
 
@@ -44,6 +44,6 @@ Or if you prefer `x` or some other letter
 eval $(repo sh zsh -b x)
 ```
 
-## Limitations
+### Limitations
 
 - Only zsh is supported for now.
