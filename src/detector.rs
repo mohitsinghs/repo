@@ -45,6 +45,12 @@ pub fn as_path_names(dirs: Vec<DirEntry>) -> Vec<String> {
         .collect()
 }
 
+pub fn as_paths(dirs: Vec<DirEntry>) -> Vec<String> {
+    dirs.into_iter()
+        .map(|d| d.path().to_str().unwrap().to_string())
+        .collect()
+}
+
 pub fn find_path(term: &str, dirs: Vec<DirEntry>) -> Option<DirEntry> {
     dirs.into_iter()
         .find(|d| d.path().to_str().map(|s| s.contains(term)).unwrap_or(false))

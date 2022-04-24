@@ -1,4 +1,4 @@
-use crate::detector::as_path_names;
+use crate::detector::{as_path_names, as_paths};
 use config::Conf;
 use detector::{find_path, traverse_roots};
 use sh::print_completions;
@@ -33,8 +33,13 @@ fn main() {
             }
             "cmp" => {
                 let term = args.value_of("term");
+                let full = args.is_present("full");
                 let repos = traverse_roots(conf.roots, term);
-                println!("{}", as_path_names(repos).join(" "));
+                if full {
+                    println!("{}", as_paths(repos).join("\n"));
+                } else {
+                    println!("{}", as_path_names(repos).join(" "));
+                }
             }
             "cd" => {
                 if let Some(term) = args.value_of("target") {

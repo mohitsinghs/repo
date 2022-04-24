@@ -29,7 +29,14 @@ pub fn parse() -> ArgMatches {
         )
         .subcommand(
             Command::new("cmp")
-                .arg(Arg::new("term"))
+                .args(&[
+                    Arg::new("term"),
+                    Arg::new("full")
+                        .long("full")
+                        .short('f')
+                        .required(false)
+                        .help("return full paths separated by new lines"),
+                ])
                 .about("generate completions"),
         )
         .subcommand(
