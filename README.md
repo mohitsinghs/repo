@@ -44,6 +44,10 @@ Or if you prefer `x` or some other letter
 eval $(repo sh zsh -b x)
 ```
 
+## For neovim users
+
+If you use [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) You may use [this](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/repo.lua) to switch between repos inside neovim.
+
 ### Limitations
 
 - Only zsh is supported for now.
