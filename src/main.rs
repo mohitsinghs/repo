@@ -45,7 +45,7 @@ fn main() {
                 if let Some(term) = args.value_of("target") {
                     let repos = traverse_roots(conf.roots, None);
                     if let Some(dir) = find_path(term, repos) {
-                        println!("{}", dir.path().to_str().unwrap())
+                        println!("{}", dir.to_str().unwrap())
                     }
                 }
             }

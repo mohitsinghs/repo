@@ -1,26 +1,58 @@
 use dirs::home_dir;
-use ignore::{DirEntry, WalkBuilder};
-use std::path::Path;
+use ignore::{WalkBuilder, WalkState};
+use std::{
+    path::{Path, PathBuf},
+    sync::mpsc,
+};
 
 use crate::config::Root;
 
-pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> Vec<DirEntry> {
-    let walker = WalkBuilder::new(loc).max_depth(depth).build();
-    walker
-        .into_iter()
-        .filter_map(|res| res.ok())
-        .filter(|d| {
-            let p = d.path();
-            if let Some(t) = term {
-                is_git_repo(p) && p.to_str().map(|s| s.contains(t)).unwrap_or_default()
+pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> Vec<PathBuf> {
+    let walker = WalkBuilder::new(loc).max_depth(depth).build_parallel();
+    let (tx, rx) = mpsc::channel();
+    let mut entries: Vec<PathBuf> = Vec::new();
+    walker.run(|| {
+        let ttx = tx.clone();
+        Box::new(move |res| {
+            if let Ok(entry) = res {
+                let path = entry.path();
+                if let Some(t) = term {
+                    if is_git_repo(path) && path.to_str().map(|s| s.contains(t)).unwrap_or_default()
+                    {
+                        let s = ttx.send(path.to_path_buf());
+                        if s.is_err() {
+                            return WalkState::Quit;
+                        }
+                        WalkState::Skip
+                    } else if path.is_dir() {
+                        WalkState::Continue
+                    } else {
+                        WalkState::Skip
+                    }
+                } else if is_git_repo(path) {
+                    let s = ttx.send(path.to_path_buf());
+                    if s.is_err() {
+                        return WalkState::Quit;
+                    }
+                    WalkState::Skip
+                } else if path.is_dir() {
+                    WalkState::Continue
+                } else {
+                    WalkState::Skip
+                }
             } else {
-                is_git_repo(p)
+                WalkState::Quit
             }
         })
-        .collect()
+    });
+    drop(tx);
+    while let Ok(entry) = rx.recv() {
+        entries.push(entry)
+    }
+    entries
 }
 
-pub fn traverse_roots(roots: Vec<Root>, term: Option<&str>) -> Vec<DirEntry> {
+pub fn traverse_roots(roots: Vec<Root>, term: Option<&str>) -> Vec<PathBuf> {
     if roots.is_empty() {
         let home = home_dir().unwrap_or_default();
         find_git_repos(home.as_path(), None, term)
@@ -39,21 +71,21 @@ pub fn traverse_roots(roots: Vec<Root>, term: Option<&str>) -> Vec<DirEntry> {
     }
 }
 
-pub fn as_path_names(dirs: Vec<DirEntry>) -> Vec<String> {
+pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
-        .map(|d| d.path().file_name().unwrap().to_str().unwrap().to_string())
+        .map(|d| d.file_name().unwrap().to_str().unwrap().to_string())
         .collect()
 }
 
-pub fn as_paths(dirs: Vec<DirEntry>) -> Vec<String> {
+pub fn as_paths(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
-        .map(|d| d.path().to_str().unwrap().to_string())
+        .map(|d| d.to_str().unwrap().to_string())
         .collect()
 }
 
-pub fn find_path(term: &str, dirs: Vec<DirEntry>) -> Option<DirEntry> {
+pub fn find_path(term: &str, dirs: Vec<PathBuf>) -> Option<PathBuf> {
     dirs.into_iter()
-        .find(|d| d.path().to_str().map(|s| s.contains(term)).unwrap_or(false))
+        .find(|d| d.to_str().map(|s| s.contains(term)).unwrap_or(false))
 }
 
 pub fn is_git_repo(loc: &Path) -> bool {
