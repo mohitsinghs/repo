@@ -2,49 +2,50 @@ use dirs::home_dir;
 use ignore::{WalkBuilder, WalkState};
 use std::{
     path::{Path, PathBuf},
-    sync::mpsc,
+    sync::mpsc::{self, Sender},
 };
 
 use crate::config::Root;
 
+pub fn matches(path: &Path, term: &str) -> bool {
+    path.to_str().map(|s| s.contains(term)).unwrap_or_default()
+}
+
+pub fn walk(path: &Path, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
+    if is_match {
+        let s = ttx.send(path.to_path_buf());
+        if s.is_err() {
+            return WalkState::Quit;
+        }
+        WalkState::Skip
+    } else if path.is_dir() {
+        WalkState::Continue
+    } else {
+        WalkState::Skip
+    }
+}
+
 pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> Vec<PathBuf> {
-    let walker = WalkBuilder::new(loc).max_depth(depth).build_parallel();
     let (tx, rx) = mpsc::channel();
     let mut entries: Vec<PathBuf> = Vec::new();
-    walker.run(|| {
-        let ttx = tx.clone();
-        Box::new(move |res| {
-            if let Ok(entry) = res {
-                let path = entry.path();
-                if let Some(t) = term {
-                    if is_git_repo(path) && path.to_str().map(|s| s.contains(t)).unwrap_or_default()
-                    {
-                        let s = ttx.send(path.to_path_buf());
-                        if s.is_err() {
-                            return WalkState::Quit;
-                        }
-                        WalkState::Skip
-                    } else if path.is_dir() {
-                        WalkState::Continue
+    WalkBuilder::new(loc)
+        .max_depth(depth)
+        .build_parallel()
+        .run(|| {
+            let ttx = tx.clone();
+            Box::new(move |res| {
+                if let Ok(entry) = res {
+                    let path = entry.path();
+                    if let Some(t) = term {
+                        walk(path, &ttx, is_git_repo(path) && matches(path, t))
                     } else {
-                        WalkState::Skip
+                        walk(path, &ttx, is_git_repo(path))
                     }
-                } else if is_git_repo(path) {
-                    let s = ttx.send(path.to_path_buf());
-                    if s.is_err() {
-                        return WalkState::Quit;
-                    }
-                    WalkState::Skip
-                } else if path.is_dir() {
-                    WalkState::Continue
                 } else {
-                    WalkState::Skip
+                    WalkState::Quit
                 }
-            } else {
-                WalkState::Quit
-            }
-        })
-    });
+            })
+        });
     drop(tx);
     while let Ok(entry) = rx.recv() {
         entries.push(entry)
