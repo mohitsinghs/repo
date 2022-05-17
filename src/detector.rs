@@ -1,11 +1,10 @@
+use crate::config::Root;
 use dirs::home_dir;
 use ignore::{WalkBuilder, WalkState};
 use std::{
     path::{Path, PathBuf},
     sync::mpsc::{self, Sender},
 };
-
-use crate::config::Root;
 
 pub fn matches(path: &Path, term: &str) -> bool {
     path.to_str().map(|s| s.contains(term)).unwrap_or_default()
@@ -70,23 +69,6 @@ pub fn traverse_roots(roots: Vec<Root>, term: Option<&str>) -> Vec<PathBuf> {
             })
             .collect()
     }
-}
-
-pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
-    dirs.into_iter()
-        .map(|d| d.file_name().unwrap().to_str().unwrap().to_string())
-        .collect()
-}
-
-pub fn as_paths(dirs: Vec<PathBuf>) -> Vec<String> {
-    dirs.into_iter()
-        .map(|d| d.to_str().unwrap().to_string())
-        .collect()
-}
-
-pub fn find_path(term: &str, dirs: Vec<PathBuf>) -> Option<PathBuf> {
-    dirs.into_iter()
-        .find(|d| d.to_str().map(|s| s.contains(term)).unwrap_or(false))
 }
 
 pub fn is_git_repo(loc: &Path) -> bool {

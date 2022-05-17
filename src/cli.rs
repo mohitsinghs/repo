@@ -36,12 +36,17 @@ pub fn parse() -> ArgMatches {
                         .short('f')
                         .required(false)
                         .help("return full paths separated by new lines"),
+                    Arg::new("json")
+                        .long("json")
+                        .short('j')
+                        .required(false)
+                        .help("return results as json"),
                 ])
                 .about("generate completions"),
         )
         .subcommand(
             Command::new("cd")
-                .arg(Arg::new("target"))
+                .arg(Arg::new("target").multiple_values(true))
                 .arg_required_else_help(true)
                 .about("change to given directory"),
         );

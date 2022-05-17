@@ -1,13 +1,17 @@
-use crate::detector::{as_path_names, as_paths};
 use config::Conf;
-use detector::{find_path, traverse_roots};
+use detector::traverse_roots;
+use matcher::find_match;
 use sh::print_completions;
 use std::process::exit;
+use transformer::{as_json, as_path_names, as_paths};
 
 mod cli;
 mod config;
 mod detector;
+mod matcher;
+mod path_extra;
 mod sh;
+mod transformer;
 
 fn main() {
     let matches = cli::parse();
@@ -34,17 +38,20 @@ fn main() {
             "cmp" => {
                 let term = args.value_of("term");
                 let full = args.is_present("full");
+                let is_json = args.is_present("json");
                 let repos = traverse_roots(conf.roots, term);
                 if full {
                     println!("{}", as_paths(repos).join("\n"));
+                } else if is_json {
+                    println!("{}", as_json(repos).expect("failed to parse json"));
                 } else {
                     println!("{}", as_path_names(repos).join(" "));
                 }
             }
             "cd" => {
-                if let Some(term) = args.value_of("target") {
+                if let Some(terms) = args.values_of("target") {
                     let repos = traverse_roots(conf.roots, None);
-                    if let Some(dir) = find_path(term, repos) {
+                    if let Some(dir) = find_match(terms.collect(), repos) {
                         println!("{}", dir.to_str().unwrap())
                     }
                 }
