@@ -1,25 +1,61 @@
-# repo <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/mohitsinghs/repo/release?style=flat-square" /> <img alt="GitHub" src="https://img.shields.io/github/license/mohitsinghs/repo?style=flat-square" />
-
-Jump between repositories without pain
+<h1 align='center'>repo</h1>
+<p align="center">
+  <b>Switch between repositories with ease</b><br/>
+  <sub>Access all repositories from anywhere</a></sub>
+</p>
+<p align='center'>
+  <a href="https://github.com/mohitsinghs/repo/actions/workflows/release.yml">
+    <img alt="Release" src="https://img.shields.io/github/workflow/status/mohitsinghs/repo/release?style=flat-square" />
+  </a>
+  <a href="https://github.com/mohitsinghs/repo/blob/main/LICENSE">
+    <img alt="LICENSE" src="https://img.shields.io/github/license/mohitsinghs/repo?style=flat-square" />
+  </a>
+</p>
+<br />
 
 ## Installing
 
 Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) for your system and put it in the path.
 
+## Shell integration
+
+Put following in you `~/.zshrc`. The default binding is `z` but you can change it.
+
+```bash
+eval $(repo sh zsh)
+```
+
+Or if you prefer `x` or some other letter, use that
+
+```bash
+eval $(repo sh zsh -b x)
+```
+
 ## Usage
 
-**1. Init and populate configuration**
+You can jump around your repos with -
 
-This step is optional, and if you don't do this, your home directory will be used for search.
+```bash
+% z fo/ba
+% /foo/bar
+% z p/os/vsc
+% ~/Projects/oss/vscode-repo
+```
+
+Where `z` can be any letter you bind. Hitting the tab will show you possible locations.
+
+## Configuration
+
+By default, your home directory will be used for search.
 The config lives in you config directory with name `repo.yml`.
 
-Create config.
+1. Create config.
 
 ```sh
 repo init
 ```
 
-And add some root paths with or without depths.
+2. Add some root paths with or without depths.
 
 ```yaml
 roots:
@@ -30,23 +66,15 @@ roots:
     depth: 2
 ```
 
-**2. Add shell completions**
+## Editors
 
-Put following in you `~/.zshrc`. The default binding is `z` but you can change it.
+### neovim
 
-```bash
-eval $(repo sh zsh)
-```
+There is a [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) plugin [in my dotfiles](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/lists/repo.lua) that uses this to jump between repositories from within neovim.
 
-Or if you prefer `x` or some other letter
+### vscode
 
-```bash
-eval $(repo sh zsh -b x)
-```
-
-## For neovim users
-
-If you use [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) You may use [this](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/repo.lua) to switch between repos inside neovim.
+There is an [extension](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) that I maintain for VSCode that works on the top of this.
 
 ### Limitations
 
