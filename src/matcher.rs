@@ -39,12 +39,12 @@ pub fn find_match(terms: Vec<&str>, dirs: Vec<PathBuf>) -> Option<PathBuf> {
     if let Some((base, others)) = normalized_terms.split_last_mut() {
         let matched = dirs
             .into_iter()
-            .filter(|p| p.ex_base().map(|n| n.contains(&(*base))).unwrap_or(false));
+            .filter(|p| p.x_base().map(|n| n.contains(&(*base))).unwrap_or(false));
         if others.is_empty() {
             return matched
                 .into_iter()
                 .map(|pb| {
-                    let match_len = pb.ex_base().unwrap_or_default().len();
+                    let match_len = pb.x_base().unwrap_or_default().len();
                     Matched::new(pb, match_len)
                 })
                 .min_by_key(|m| m.length)
@@ -55,7 +55,7 @@ pub fn find_match(terms: Vec<&str>, dirs: Vec<PathBuf>) -> Option<PathBuf> {
                 .map(|pb| {
                     let match_len = lcs(
                         others.join("").to_lowercase(),
-                        pb.ex_parent().unwrap_or_default().to_lowercase(),
+                        pb.x_parent().unwrap_or_default().to_lowercase(),
                     );
                     Matched::new(pb, match_len)
                 })
