@@ -61,10 +61,13 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
                     if let Some(_obj) = _ref.as_object_mut() {
                         if let Some(_key) = _obj.get_mut(key) {
                             if let Some(_key_obj) = _key.as_object_mut() {
-                                if let Some(_core) = _key_obj.get_mut("_core") {
-                                    _core.as_array_mut().and_then(|arr| Some(arr.push(value)));
+                                if let Some(_children) = _key_obj.get_mut("_children") {
+                                    _children
+                                        .as_array_mut()
+                                        .and_then(|arr| Some(arr.push(value)));
                                 } else {
-                                    _key_obj.insert("_core".to_string(), json!([value].to_vec()));
+                                    _key_obj
+                                        .insert("_children".to_string(), json!([value].to_vec()));
                                 }
                             } else if let Some(arr) = _key.as_array_mut() {
                                 arr.push(value);
