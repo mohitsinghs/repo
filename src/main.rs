@@ -3,7 +3,7 @@ use detector::traverse_roots;
 use matcher::find_match;
 use sh::print_completions;
 use std::process::exit;
-use transformer::{as_json, as_path_names, as_paths};
+use transformer::{as_json, as_path_names, as_paths, as_tree};
 
 mod cli;
 mod config;
@@ -39,11 +39,14 @@ fn main() {
                 let term = args.value_of("term");
                 let full = args.is_present("full");
                 let is_json = args.is_present("json");
+                let is_tree = args.is_present("tree");
                 let repos = traverse_roots(conf.roots, term);
                 if full {
                     println!("{}", as_paths(repos).join("\n"));
                 } else if is_json {
                     println!("{}", as_json(repos).expect("failed to parse json"));
+                } else if is_tree {
+                    println!("{}", as_tree(repos).expect("failed to parse json"));
                 } else {
                     println!("{}", as_path_names(repos).join(" "));
                 }

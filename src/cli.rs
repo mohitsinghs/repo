@@ -7,24 +7,24 @@ pub fn parse() -> ArgMatches {
     let cmd = Command::new(crate_name!())
         .version(crate_version!())
         .about(crate_description!())
-        .subcommand(Command::new("init").about("initiate config"))
+        .subcommand(Command::new("init").about("Initiate config"))
         .subcommand(
             Command::new("sh")
-                .about("generate shell completions")
+                .about("Generate shell completions")
                 .args(&[
                     Arg::new("shell")
                         .required(false)
                         .takes_value(true)
                         .possible_values(["zsh", "bash", "fish"])
                         .default_value(&shell)
-                        .help("current shell to generate completions for"),
+                        .help("Current shell to generate completions for"),
                     Arg::new("bind")
                         .long("bind")
                         .short('b')
                         .takes_value(true)
                         .required(false)
                         .default_value("z")
-                        .help("word or character to bind with"),
+                        .help("Word or character to bind with"),
                 ]),
         )
         .subcommand(
@@ -35,20 +35,27 @@ pub fn parse() -> ArgMatches {
                         .long("full")
                         .short('f')
                         .required(false)
-                        .help("return full paths separated by new lines"),
+                        .conflicts_with_all(&["json", "tree"])
+                        .help("Print repo paths separated by newline"),
                     Arg::new("json")
                         .long("json")
+                        .conflicts_with("tree")
                         .short('j')
                         .required(false)
-                        .help("return results as json"),
+                        .help("Print matches as json list"),
+                    Arg::new("tree")
+                        .long("tree")
+                        .short('t')
+                        .required(false)
+                        .help("Print matches as json tree"),
                 ])
-                .about("generate completions"),
+                .about("Generate completions"),
         )
         .subcommand(
             Command::new("cd")
                 .arg(Arg::new("target").multiple_values(true))
                 .arg_required_else_help(true)
-                .about("change to given directory"),
+                .about("Change to given directory"),
         );
     cmd.get_matches()
 }
