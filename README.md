@@ -13,6 +13,15 @@
 </p>
 <br />
 
+## Features
+
+- **Fast enoguh** - takes **~80ms** to scan my entire drive and list all repositories.
+- **Fuzzy matching** - can match paths partially.
+- **Shell integration** - only zsh is supported for now.
+- **Nested output** - supports tree like output for better context.
+- **Respects gitignore** - skips nested repositories that are ignored by git.
+- **Configurable** - you can control depth for each root for now.
+
 ## Installing
 
 Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) for your system and put it in the path.
@@ -44,9 +53,21 @@ You can jump around your repos with -
 
 Where `z` can be any letter you bind. Hitting the tab will show you possible locations.
 
+## Editor Integration
+
+### Neovim
+
+There is a [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) plugin [in my dotfiles](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/lists/repo.lua) that uses this to jump between repositories from within neovim.
+
+### VSCode
+
+- I maintain an [extension](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) for VSCode that bundles this.
+- There is also `vsix` under releases for those who don't prefer VSCode Marketplace.
+- Checkout [vscode-repo](https://github.com/mohitsinghs/vscode-repo) for sources of the extension.
+
 ## Configuration
 
-By default, your home directory will be used for search.
+Your home directory will be used for search by default.
 The config lives in you config directory with name `repo.yml`.
 
 1. Create config.
@@ -65,17 +86,3 @@ roots:
   - path: /home/mohit/Work
     depth: 2
 ```
-
-## Editors
-
-### neovim
-
-There is a [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) plugin [in my dotfiles](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/lists/repo.lua) that uses this to jump between repositories from within neovim.
-
-### vscode
-
-There is an [extension](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) that I maintain for VSCode that works on the top of this.
-
-### Limitations
-
-- Only zsh is supported for now.
