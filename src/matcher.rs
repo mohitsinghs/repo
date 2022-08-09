@@ -1,6 +1,6 @@
 use crate::path_extra::*;
 use std::cmp::max;
-use std::path::{PathBuf, MAIN_SEPARATOR};
+use std::path::PathBuf;
 
 struct Matched {
     path: PathBuf,
@@ -11,13 +11,6 @@ impl Matched {
     pub fn new(path: PathBuf, length: usize) -> Self {
         Self { path, length }
     }
-}
-
-fn normalize_terms(terms: Vec<&str>) -> Vec<&str> {
-    terms
-        .into_iter()
-        .flat_map(|term| term.split(MAIN_SEPARATOR).collect::<Vec<&str>>())
-        .collect()
 }
 
 fn lcs(t1: String, t2: String) -> usize {
@@ -35,16 +28,15 @@ fn lcs(t1: String, t2: String) -> usize {
 }
 
 pub fn find_match(terms: Vec<&str>, dirs: Vec<PathBuf>) -> Option<PathBuf> {
-    let mut normalized_terms = normalize_terms(terms);
-    if let Some((base, others)) = normalized_terms.split_last_mut() {
+    if let Some((base, others)) = terms.split_last() {
         let matched = dirs
             .into_iter()
-            .filter(|p| p.x_base().map(|n| n.contains(&(*base))).unwrap_or(false));
+            .filter(|p| p.base().map(|n| n.contains(base)).unwrap_or(false));
         if others.is_empty() {
             return matched
                 .into_iter()
                 .map(|pb| {
-                    let match_len = pb.x_base().unwrap_or_default().len();
+                    let match_len = pb.base().unwrap_or_default().len();
                     Matched::new(pb, match_len)
                 })
                 .min_by_key(|m| m.length)
@@ -55,7 +47,9 @@ pub fn find_match(terms: Vec<&str>, dirs: Vec<PathBuf>) -> Option<PathBuf> {
                 .map(|pb| {
                     let match_len = lcs(
                         others.join("").to_lowercase(),
-                        pb.x_parent().unwrap_or_default().to_lowercase(),
+                        pb.parent()
+                            .map(|p| p.to_string().to_lowercase())
+                            .unwrap_or_default(),
                     );
                     Matched::new(pb, match_len)
                 })

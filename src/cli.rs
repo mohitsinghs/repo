@@ -53,7 +53,7 @@ pub fn parse() -> ArgMatches {
         )
         .subcommand(
             Command::new("cd")
-                .arg(Arg::new("target").multiple_values(true))
+                .arg(Arg::new("target").value_delimiter('/'))
                 .arg_required_else_help(true)
                 .about("Change to given directory"),
         );
