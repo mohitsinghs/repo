@@ -1,7 +1,7 @@
 use crate::path_extra::*;
 use anyhow::{Error, Result};
 use serde_json::{json, to_string, Map, Value};
-use std::{collections::BTreeMap, path::PathBuf};
+use std::{collections::BTreeMap, mem::replace, path::PathBuf};
 
 pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
@@ -33,7 +33,7 @@ fn common_path(dirs: &Vec<PathBuf>) -> PathBuf {
         .collect::<PathBuf>()
 }
 
-fn add_children(target: &mut Value, val: Value) {
+fn add_child(target: &mut Value, val: Value) {
     if let Some(target_obj) = target.as_object_mut() {
         if let Some(_children) = target_obj.get_mut("_children") {
             _children.as_array_mut().and_then(|arr| Some(arr.push(val)));
@@ -63,8 +63,13 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
                         "location": original,
                         "label": current,
                     });
-                    add_children(_ref, value)
+                    add_child(_ref, value)
                 } else if remaining > 1 {
+                    if _ref.is_array() {
+                        let children = replace(_ref, json!(Map::new()));
+                        let mut _ref_obj = _ref.as_object_mut().unwrap();
+                        _ref_obj.insert("_children".to_string(), json!(children));
+                    }
                     _ref = _ref
                         .as_object_mut()
                         .unwrap()
@@ -78,14 +83,15 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
                     });
                     if let Some(_obj) = _ref.as_object_mut() {
                         if let Some(_key) = _obj.get_mut(current) {
-                            add_children(_key, value);
+                            add_child(_key, value);
                         } else {
-                            _ref.as_object_mut()
-                                .unwrap()
-                                .insert(current.to_string(), json!([value].to_vec()));
+                            _obj.insert(current.to_string(), json!([value].to_vec()));
                         }
-                    } else if let Some(arr) = _ref.as_array_mut() {
-                        arr.push(value);
+                    } else if _ref.is_array() {
+                        let children = replace(_ref, json!(Map::new()));
+                        let mut _ref_obj = _ref.as_object_mut().unwrap();
+                        _ref_obj.insert("_children".to_string(), json!(children));
+                        _ref_obj.insert(current.to_string(), json!([value].to_vec()));
                     }
                 }
             }
