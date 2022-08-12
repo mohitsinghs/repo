@@ -1,5 +1,7 @@
 use std::{path::Path, process::exit};
 
+use slog::{error, Logger};
+
 pub fn get_current_shell() -> Option<String> {
     match std::env::var("SHELL") {
         Ok(shell) => Path::new(&shell)
@@ -10,7 +12,7 @@ pub fn get_current_shell() -> Option<String> {
     }
 }
 
-pub fn print_completions(shell: Option<&str>, binding: &str) {
+pub fn print_completions(shell: Option<&str>, binding: &str, log: Logger) {
     match shell {
         Some("zsh") => println!(
             "# Put the line below in ~/.zshrc:
@@ -31,7 +33,7 @@ test -d \"$p\" && cd \"$p\"
 compctl -U -K repo_completion {binding}",
         ),
         Some(sh) => {
-            println!("unsupported shell : {}", sh);
+            error!(log, "sh: unsupported shell"; "shell" => sh);
             exit(1)
         }
         None => exit(0),

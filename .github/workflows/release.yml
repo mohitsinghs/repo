@@ -10,20 +10,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       RUST_BACKTRACE: 1
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            target: aarch64-pc-windows-msvc
-          - os: ubuntu-18.04
-            target: x86_64-unknown-linux-gnu
-          - os: ubuntu-18.04
-            target: aarch64-unknown-linux-gnu
-          - os: ubuntu-18.04
-            target: x86_64-unknown-linux-musl
           - os: macos-11
             target: x86_64-apple-darwin
           - os: macos-11
@@ -35,10 +24,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Rename existing Rust toolchain
-        if: matrix.os == 'windows-latest'
-        run: Rename-Item C:\Users\runneradmin\.rustup\toolchains\stable-x86_64-pc-windows-msvc C:\Users\runneradmin\.rustup\toolchains\stable-x86_64-pc-windows-msvc.old
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -47,39 +32,14 @@ jobs:
           override: true
           target: ${{ matrix.target }}
 
-      - name: Update apt repositories
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get update
-
-      - name: Install gcc-aarch64-linux-gnu
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get install gcc-aarch64-linux-gnu
-
-      - name: Install musl-tools
-        if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: sudo apt-get install -y --no-install-recommends musl-tools
-
       - name: Build release binary
         run: cargo build --verbose --release --target ${{ matrix.target }}
 
       - name: Tar release (unix)
-        if: matrix.os != 'windows-latest'
         working-directory: ./target/${{ matrix.target }}/release
         run: tar cvfz repo-${{matrix.target}}.tar.gz "repo"
 
-      - name: Zip Windows release
-        if: matrix.os == 'windows-latest'
-        working-directory: ./target/${{ matrix.target }}/release
-        run: tar.exe -a -c -f repo-${{matrix.target}}.zip "repo.exe"
-
       - name: Upload release archive (linux)
-        if: matrix.os != 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
           files: target/${{ matrix.target }}/release/repo-${{matrix.target}}.tar.gz
-
-      - name: Upload Windows release archive
-        if: matrix.os == 'windows-latest'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: target/${{ matrix.target }}/release/repo-${{matrix.target}}.zip
