@@ -41,7 +41,7 @@ pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> V
                         walk(path, &ttx, is_git_repo(path))
                     }
                 } else {
-                    WalkState::Quit
+                    WalkState::Skip
                 }
             })
         });
@@ -72,5 +72,5 @@ pub fn traverse_roots(roots: Vec<Root>, term: Option<&str>) -> Vec<PathBuf> {
 }
 
 pub fn is_git_repo(loc: &Path) -> bool {
-    loc.join(".git").join("config").exists()
+    loc.is_dir() && loc.join(".git").join("config").exists()
 }

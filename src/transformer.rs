@@ -46,7 +46,11 @@ fn add_child(target: &mut Value, val: Value) {
 }
 
 pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
-    let common = common_path(&dirs);
+    let common = if dirs.len() == 1 {
+        dirs[0].parent().unwrap().to_path_buf()
+    } else {
+        common_path(&dirs)
+    };
     let val = dirs
         .iter()
         .map(|dir| dir.strip_prefix(&common).unwrap())
