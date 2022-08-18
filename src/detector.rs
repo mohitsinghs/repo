@@ -24,6 +24,16 @@ pub fn walk(path: &Path, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
     }
 }
 
+#[cfg(macos)]
+fn system_paths() -> Vec<PathBuf> {
+    let home = home_dir().unwrap();
+    // these are the biggest culprits for slowness on mac
+    // these will be ignored unless someone adds these manually
+    ["Library", "Applications"]
+        .map(|base| home.join(base))
+        .to_vec()
+}
+
 pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> Vec<PathBuf> {
     let (tx, rx) = mpsc::channel();
     let mut entries: Vec<PathBuf> = Vec::new();
@@ -34,7 +44,16 @@ pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> V
             let ttx = tx.clone();
             Box::new(move |res| {
                 if let Ok(entry) = res {
+                    if entry.depth() == 0 {
+                        return WalkState::Continue;
+                    }
                     let path = entry.path();
+
+                    #[cfg(macos)]
+                    if system_paths().contains(&path.to_path_buf()) {
+                        return WalkState::Skip;
+                    }
+
                     if let Some(t) = term {
                         walk(path, &ttx, is_git_repo(path) && matches(path, t))
                     } else {
