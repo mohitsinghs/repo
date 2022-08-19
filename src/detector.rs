@@ -24,7 +24,7 @@ pub fn walk(path: &Path, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
     }
 }
 
-#[cfg(macos)]
+#[cfg(target_os = "macos")]
 fn system_paths() -> Vec<PathBuf> {
     let home = home_dir().unwrap();
     // these are the biggest culprits for slowness on mac
@@ -49,7 +49,7 @@ pub fn find_git_repos(loc: &Path, depth: Option<usize>, term: Option<&str>) -> V
                     }
                     let path = entry.path();
 
-                    #[cfg(macos)]
+                    #[cfg(target_os = "macos")]
                     if system_paths().contains(&path.to_path_buf()) {
                         return WalkState::Skip;
                     }
