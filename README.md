@@ -17,7 +17,7 @@
 
 - **Fast enoguh** - takes **~80ms** to scan my entire drive and list all repositories.
 - **Fuzzy matching** - can match paths partially.
-- **Shell integration** - only zsh is supported for now.
+- **Shell integration** - Works with zsh and bash.
 - **Nested output** - supports tree like output for better context.
 - **Respects gitignore** - skips nested repositories that are ignored by git.
 - **Configurable** - you can control depth for each root for now.
@@ -27,6 +27,10 @@
 Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) for your system and put it in the path.
 
 ## Shell integration
+
+You can also run `repo sh` to see the setup instructions for your current shell if supported.
+
+### For zsh
 
 Put following in you `~/.zshrc`. The default binding is `z` but you can change it.
 
@@ -38,6 +42,20 @@ Or if you prefer `x` or some other letter, use that
 
 ```bash
 eval $(repo sh zsh -b x)
+```
+
+### For bash
+
+Put following in you `~/.bashrc` or `~/.bash_profile`. The default binding is `z` but you can change it.
+
+```bash
+eval $(repo sh bash)
+```
+
+Or if you prefer `x` or some other letter, use that
+
+```bash
+eval $(repo sh bash -b x)
 ```
 
 ## Usage
