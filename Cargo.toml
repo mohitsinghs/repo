@@ -18,3 +18,4 @@ serde_yaml = "0.9.9"
 [profile.release]
 opt-level = 'z'
 lto = true
+strip = true
