@@ -30,7 +30,7 @@ pub fn parse() -> ArgMatches {
         .subcommand(
             Command::new("cmp")
                 .args(&[
-                    Arg::new("term"),
+                    Arg::new("term").value_delimiter('/'),
                     Arg::new("full")
                         .long("full")
                         .short('f')

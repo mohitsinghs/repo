@@ -36,7 +36,7 @@ fn main() {
                 print_completions(shell, binding)
             }
             "cmp" => {
-                let term = args.value_of("term");
+                let term: Option<Vec<&str>> = args.values_of("term").map(|v| v.collect());
                 let full = args.is_present("full");
                 let is_json = args.is_present("json");
                 let is_tree = args.is_present("tree");
