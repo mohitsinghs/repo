@@ -3,7 +3,10 @@ use dirs::home_dir;
 use ignore::{WalkBuilder, WalkState};
 use std::{
     path::{Path, PathBuf},
-    sync::mpsc::{self, Sender},
+    sync::{
+        mpsc::{self, Sender},
+        Arc,
+    },
 };
 
 pub fn walk(path: &Path, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
@@ -30,13 +33,18 @@ fn system_paths() -> Vec<PathBuf> {
         .to_vec()
 }
 
-pub fn find_git_repos(loc: &Path, depth: Option<usize>, match_term: &str) -> Vec<PathBuf> {
+pub fn find_git_repos(
+    loc: &Path,
+    depth: Option<usize>,
+    match_terms: Arc<Vec<&str>>,
+) -> Vec<PathBuf> {
     let (tx, rx) = mpsc::channel();
     let mut entries: Vec<PathBuf> = Vec::new();
     WalkBuilder::new(loc)
         .max_depth(depth)
         .build_parallel()
         .run(|| {
+            let terms = Arc::clone(&match_terms);
             let ttx = tx.clone();
             Box::new(move |res| {
                 if let Ok(entry) = res {
@@ -50,10 +58,14 @@ pub fn find_git_repos(loc: &Path, depth: Option<usize>, match_term: &str) -> Vec
                         return WalkState::Skip;
                     }
 
-                    if match_term.is_empty() {
+                    if terms.is_empty() {
                         walk(path, &ttx, is_git_repo(path))
                     } else {
-                        walk(path, &ttx, is_git_repo(path) && is_match(&path, match_term))
+                        walk(
+                            path,
+                            &ttx,
+                            is_git_repo(path) && is_match(&path, Arc::clone(&terms)),
+                        )
                     }
                 } else {
                     WalkState::Skip
@@ -68,20 +80,23 @@ pub fn find_git_repos(loc: &Path, depth: Option<usize>, match_term: &str) -> Vec
 }
 
 pub fn traverse_roots(roots: Vec<Root>, terms: Option<Vec<&str>>) -> Vec<PathBuf> {
-    let match_term = terms.unwrap_or_default().join("");
-
+    let match_terms = Arc::new(terms.unwrap_or_default());
     if roots.is_empty() {
         let home = home_dir().unwrap_or_default();
-        find_git_repos(home.as_path(), None, &match_term)
+        find_git_repos(home.as_path(), None, match_terms)
     } else {
         roots
             .into_iter()
             .filter(|root| Path::new(&root.path).is_dir())
             .flat_map(|root| {
                 if root.depth == 0 {
-                    find_git_repos(Path::new(&root.path), None, &match_term)
+                    find_git_repos(Path::new(&root.path), None, Arc::clone(&match_terms))
                 } else {
-                    find_git_repos(Path::new(&root.path), Some(root.depth), &match_term)
+                    find_git_repos(
+                        Path::new(&root.path),
+                        Some(root.depth),
+                        Arc::clone(&match_terms),
+                    )
                 }
             })
             .collect()
