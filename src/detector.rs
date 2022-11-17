@@ -1,7 +1,4 @@
-use crate::{
-    config::Root,
-    matcher::{is_match, split_matches},
-};
+use crate::{config::Root, matcher::is_match};
 use dirs::home_dir;
 use ignore::{WalkBuilder, WalkState};
 use std::{
@@ -33,12 +30,7 @@ fn system_paths() -> Vec<PathBuf> {
         .to_vec()
 }
 
-pub fn find_git_repos(
-    loc: &Path,
-    depth: Option<usize>,
-    base_term: Option<&str>,
-    other_terms: &str,
-) -> Vec<PathBuf> {
+pub fn find_git_repos(loc: &Path, depth: Option<usize>, match_term: &str) -> Vec<PathBuf> {
     let (tx, rx) = mpsc::channel();
     let mut entries: Vec<PathBuf> = Vec::new();
     WalkBuilder::new(loc)
@@ -58,14 +50,10 @@ pub fn find_git_repos(
                         return WalkState::Skip;
                     }
 
-                    if let Some(t) = base_term {
-                        walk(
-                            path,
-                            &ttx,
-                            is_git_repo(path) && is_match(&path, t, other_terms),
-                        )
-                    } else {
+                    if match_term.is_empty() {
                         walk(path, &ttx, is_git_repo(path))
+                    } else {
+                        walk(path, &ttx, is_git_repo(path) && is_match(&path, match_term))
                     }
                 } else {
                     WalkState::Skip
@@ -80,23 +68,20 @@ pub fn find_git_repos(
 }
 
 pub fn traverse_roots(roots: Vec<Root>, terms: Option<Vec<&str>>) -> Vec<PathBuf> {
-    // FIXME: find a better way to extract and pass this
-    let (base, others) = split_matches(terms.unwrap_or_default());
-    let intermediate = others.unwrap_or_default();
-    let other_terms = intermediate.as_str();
+    let match_term = terms.unwrap_or_default().join("");
 
     if roots.is_empty() {
         let home = home_dir().unwrap_or_default();
-        find_git_repos(home.as_path(), None, base, other_terms)
+        find_git_repos(home.as_path(), None, &match_term)
     } else {
         roots
             .into_iter()
             .filter(|root| Path::new(&root.path).is_dir())
             .flat_map(|root| {
                 if root.depth == 0 {
-                    find_git_repos(Path::new(&root.path), None, base, other_terms)
+                    find_git_repos(Path::new(&root.path), None, &match_term)
                 } else {
-                    find_git_repos(Path::new(&root.path), Some(root.depth), base, other_terms)
+                    find_git_repos(Path::new(&root.path), Some(root.depth), &match_term)
                 }
             })
             .collect()
