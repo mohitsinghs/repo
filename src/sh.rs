@@ -26,6 +26,9 @@ __repo_completion() {{
 {binding}() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
+    if [[ -n \"$TMUX\" ]]; then
+      tmux renamew $(basename $p)
+    fi
 }}
 
 compctl -U -K __repo_completion {binding}",
@@ -45,6 +48,9 @@ __repo_completion() {{
 {binding}() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
+    if [[ -n \"$TMUX\" ]]; then
+      tmux renamew $(basename $p)
+    fi
 }}
 
 complete -o dirnames -F '__repo_completion' {binding}",
