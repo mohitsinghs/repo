@@ -15,7 +15,7 @@
 
 ## Features
 
-- **Fast enoguh** - takes **~80ms** to scan my entire drive and list all repositories.
+- **Fast enoguh** - takes **~8ms** to scan my entire drive and list all repositories.
 - **Fuzzy matching** - can match paths partially.
 - **Shell integration** - Works with zsh and bash.
 - **Nested output** - supports tree like output for better context.
