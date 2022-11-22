@@ -1,9 +1,7 @@
-use crate::sh::get_current_shell;
-use clap::{crate_description, crate_name, crate_version, Arg, ArgMatches, Command};
+use clap::{crate_description, crate_name, crate_version, Arg, ArgAction, ArgMatches, Command};
 use std::env;
 
 pub fn parse() -> ArgMatches {
-    let shell = get_current_shell().unwrap_or_else(|| "zsh".to_string());
     let cmd = Command::new(crate_name!())
         .version(crate_version!())
         .about(crate_description!())
@@ -14,14 +12,13 @@ pub fn parse() -> ArgMatches {
                 .args(&[
                     Arg::new("shell")
                         .required(false)
-                        .takes_value(true)
-                        .possible_values(["zsh", "bash", "fish"])
-                        .default_value(&shell)
+                        .num_args(1)
+                        .value_parser(["zsh", "bash"])
                         .help("Current shell to generate completions for"),
                     Arg::new("bind")
                         .long("bind")
                         .short('b')
-                        .takes_value(true)
+                        .num_args(1)
                         .required(false)
                         .default_value("z")
                         .help("Word or character to bind with"),
@@ -34,19 +31,19 @@ pub fn parse() -> ArgMatches {
                     Arg::new("full")
                         .long("full")
                         .short('f')
-                        .required(false)
+                        .action(ArgAction::SetTrue)
                         .conflicts_with_all(&["json", "tree"])
                         .help("Print repo paths separated by newline"),
                     Arg::new("json")
                         .long("json")
                         .conflicts_with("tree")
                         .short('j')
-                        .required(false)
+                        .action(ArgAction::SetTrue)
                         .help("Print matches as json list"),
                     Arg::new("tree")
                         .long("tree")
                         .short('t')
-                        .required(false)
+                        .action(ArgAction::SetTrue)
                         .help("Print matches as json tree"),
                 ])
                 .about("Generate completions"),

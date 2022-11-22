@@ -1,7 +1,7 @@
 use config::Conf;
 use detector::traverse_roots;
 use matcher::find_match;
-use sh::print_completions;
+use sh::{get_current_shell, print_completions};
 use std::process::exit;
 use transformer::{as_json, as_path_names, as_paths, as_tree};
 
@@ -31,32 +31,39 @@ fn main() {
                     .unwrap();
             }
             "sh" => {
-                let shell = args.value_of("shell");
-                let binding = args.value_of("bind").unwrap_or("x");
+                let current_shell = get_current_shell().unwrap_or("zsh".to_string());
+                let shell = args.get_one::<String>("shell").unwrap_or(&current_shell);
+                let binding = args.get_one::<String>("bind").unwrap();
                 print_completions(shell, binding)
             }
             "cmp" => {
-                let term: Option<Vec<&str>> = args.values_of("term").map(|v| v.collect());
-                let full = args.is_present("full");
-                let is_json = args.is_present("json");
-                let is_tree = args.is_present("tree");
-                let repos = traverse_roots(conf.roots, term);
-                if full {
+                let terms = args
+                    .get_many::<String>("term")
+                    .unwrap_or_default()
+                    .map(|v| v.as_str())
+                    .collect();
+                let repos = traverse_roots(conf.roots, Some(terms));
+
+                if args.get_flag("full") {
                     println!("{}", as_paths(repos).join("\n"));
-                } else if is_json {
+                } else if args.get_flag("json") {
                     println!("{}", as_json(repos).expect("failed to parse json"));
-                } else if is_tree {
+                } else if args.get_flag("tree") {
                     println!("{}", as_tree(repos).expect("failed to parse json"));
                 } else {
                     println!("{}", as_path_names(repos).join(" "));
                 }
             }
             "cd" => {
-                if let Some(terms) = args.values_of("target") {
-                    let repos = traverse_roots(conf.roots, None);
-                    if let Some(dir) = find_match(terms.collect(), repos) {
-                        println!("{}", dir.to_str().unwrap())
-                    }
+                let terms: Vec<&str> = args
+                    .get_many::<String>("target")
+                    .unwrap()
+                    .map(|v| v.as_str())
+                    .collect();
+
+                let repos = traverse_roots(conf.roots, None);
+                if let Some(dir) = find_match(terms, repos) {
+                    println!("{}", dir.to_str().unwrap())
                 }
             }
             _ => {

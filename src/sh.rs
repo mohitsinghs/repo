@@ -10,9 +10,9 @@ pub fn get_current_shell() -> Option<String> {
     }
 }
 
-pub fn print_completions(shell: Option<&str>, binding: &str) {
+pub fn print_completions(shell: &str, binding: &str) {
     match shell {
-        Some("zsh") => println!(
+        "zsh" => println!(
             "# Put the line below in ~/.zshrc:
 #
 #   eval \"$(repo sh zsh -b {binding})\"
@@ -33,7 +33,7 @@ __repo_completion() {{
 
 compctl -U -K __repo_completion {binding}",
         ),
-        Some("bash") => println!(
+        "bash" => println!(
             "# Put the line below in ~/.bashrc or ~/.bash_profile:
 #
 #   eval \"$(repo sh bash -b {binding})\"
@@ -55,10 +55,9 @@ __repo_completion() {{
 
 complete -o dirnames -F '__repo_completion' {binding}",
         ),
-        Some(sh) => {
+        sh => {
             println!("unsupported shell : {}", sh);
             exit(1)
         }
-        None => exit(0),
     }
 }
