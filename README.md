@@ -22,6 +22,10 @@
 - **Respects gitignore** - skips nested repositories that are ignored by git.
 - **Configurable** - you can add multiple roots and control scan depth for each.
 
+## Demo
+
+![repo](https://user-images.githubusercontent.com/4941333/210469514-3e15eb3e-ae9e-44a4-8b97-f01195eb1ea4.gif)
+
 ## Installing
 
 Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) for your system and put it in the path.
