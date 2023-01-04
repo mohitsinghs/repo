@@ -5,7 +5,7 @@
 </p>
 <p align='center'>
   <a href="https://github.com/mohitsinghs/repo/actions/workflows/release.yml">
-    <img alt="Release" src="https://img.shields.io/github/workflow/status/mohitsinghs/repo/release?style=flat-square" />
+    <img alt="Release" src="https://img.shields.io/github/actions/workflow/status/mohitsinghs/repo/release.yml?style=flat-square" />
   </a>
   <a href="https://github.com/mohitsinghs/repo/blob/main/LICENSE">
     <img alt="LICENSE" src="https://img.shields.io/github/license/mohitsinghs/repo?style=flat-square" />
@@ -15,12 +15,12 @@
 
 ## Features
 
-- **Fast enoguh** - takes **~8ms** to scan my entire drive and list all repositories.
+- **Fast** - takes **~8ms** to scan my entire drive and list all repositories.
 - **Fuzzy matching** - can match paths partially.
 - **Shell integration** - Works with zsh and bash.
-- **Nested output** - supports tree like output for better context.
+- **Output formats** - supports plain and nested json output.
 - **Respects gitignore** - skips nested repositories that are ignored by git.
-- **Configurable** - you can control depth for each root for now.
+- **Configurable** - you can add multiple roots and control scan depth for each.
 
 ## Installing
 
