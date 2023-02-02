@@ -1,7 +1,11 @@
 use anyhow::{Context, Error, Result};
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
-use std::fs::{create_dir_all, read_to_string, write};
+use shellexpand::tilde;
+use std::{
+    fs::{create_dir_all, read_to_string, write},
+    path::Path,
+};
 
 #[derive(Debug, Deserialize, Default, Serialize)]
 pub struct Root {
@@ -40,5 +44,18 @@ impl Conf {
         } else {
             Ok(())
         }
+    }
+}
+
+impl Root {
+    pub fn expand(&self) -> Option<Self> {
+        let expanded = tilde(&self.path).to_string();
+        if Path::new(&expanded).is_dir() {
+            return Some(Root {
+                path: expanded,
+                depth: self.depth,
+            });
+        }
+        None
     }
 }

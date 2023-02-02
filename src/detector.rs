@@ -87,16 +87,13 @@ pub fn traverse_roots(roots: Vec<Root>, terms: Option<Vec<&str>>) -> Vec<PathBuf
     } else {
         roots
             .into_iter()
-            .filter(|root| Path::new(&root.path).is_dir())
+            .filter_map(|root| root.expand())
             .flat_map(|root| {
+                let root_path = Path::new(&root.path);
                 if root.depth == 0 {
-                    find_git_repos(Path::new(&root.path), None, Arc::clone(&match_terms))
+                    find_git_repos(root_path, None, Arc::clone(&match_terms))
                 } else {
-                    find_git_repos(
-                        Path::new(&root.path),
-                        Some(root.depth),
-                        Arc::clone(&match_terms),
-                    )
+                    find_git_repos(root_path, Some(root.depth), Arc::clone(&match_terms))
                 }
             })
             .collect()
