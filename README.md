@@ -77,15 +77,8 @@ Where `z` can be any letter you bind. Hitting the tab will show you possible loc
 
 ## Editor Integration
 
-### Neovim
-
-There is a [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) plugin [in my dotfiles](https://github.com/mohitsinghs/dotfiles/blob/master/nvim/lua/lists/repo.lua) that uses this to jump between repositories from within neovim.
-
-### VSCode
-
-- I maintain an [extension](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) for VSCode that bundles this.
-- There is also `vsix` under releases for those who don't prefer VSCode Marketplace.
-- Checkout [vscode-repo](https://github.com/mohitsinghs/vscode-repo) for sources of the extension.
+- **Neovim** - [repo.nvim](https://github.com/mohitsinghs/repo.nvim) is a neovim plugin that uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
+- **VSCode** - [vscode-repo](https://github.com/mohitsinghs/vscode-repo) can be installed from the [marketplace](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) or from the `vsix` files under releases.
 
 ## Configuration
 
