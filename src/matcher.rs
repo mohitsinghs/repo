@@ -11,10 +11,7 @@ pub fn is_match(path: &Path, match_term: Arc<Vec<&str>>) -> bool {
     if let Some((base_term, parent_terms)) = match_term.split_last() {
         let matcher = SkimMatcherV2::default();
         let base_match = matcher
-            .fuzzy_match(
-                &path.base().unwrap_or_default().to_lowercase(),
-                base_term.as_ref(),
-            )
+            .fuzzy_match(&path.base_lowercase(), base_term.as_ref())
             .is_some();
         if base_match {
             if parent_terms.is_empty() {
@@ -40,11 +37,11 @@ pub fn find_match(terms: Vec<&str>, dirs: Vec<PathBuf>) -> Option<PathBuf> {
         let mut matched: Vec<(i64, PathBuf)> = dirs
             .into_iter()
             .filter_map(|p| {
+                if p.base_lowercase() == base_term.to_lowercase() {
+                    return Some((i64::MAX, p));
+                }
                 matcher
-                    .fuzzy_match(
-                        &p.base().unwrap_or_default().to_lowercase(),
-                        base_term.as_ref(),
-                    )
+                    .fuzzy_match(&p.base_lowercase(), base_term.as_ref())
                     .map(|score| (score, p))
             })
             .collect();

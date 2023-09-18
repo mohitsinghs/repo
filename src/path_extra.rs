@@ -4,6 +4,7 @@ use std::path::{Component, Path, PathBuf};
 pub trait PathExtra {
     fn base(&self) -> Option<String>;
     fn to_string(&self) -> String;
+    fn base_lowercase(&self) -> String;
 }
 
 impl PathExtra for Path {
@@ -16,6 +17,10 @@ impl PathExtra for Path {
     fn to_string(&self) -> String {
         self.to_str().map(|p| p.to_string()).unwrap_or_default()
     }
+
+    fn base_lowercase(&self) -> String {
+        self.base().map(|p| p.to_lowercase()).unwrap_or_default()
+    }
 }
 
 impl PathExtra for PathBuf {
@@ -27,6 +32,10 @@ impl PathExtra for PathBuf {
 
     fn to_string(&self) -> String {
         self.to_str().map(|p| p.to_string()).unwrap_or_default()
+    }
+
+    fn base_lowercase(&self) -> String {
+        self.base().map(|p| p.to_lowercase()).unwrap_or_default()
     }
 }
 
