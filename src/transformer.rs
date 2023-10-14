@@ -21,14 +21,13 @@ pub fn as_json(dirs: Vec<PathBuf>) -> Result<String> {
     to_string(&map).map_err(Error::msg)
 }
 
-fn common_path(dirs: &Vec<PathBuf>) -> PathBuf {
+fn common_path(dirs: &[PathBuf]) -> PathBuf {
     let initial = dirs.get(0).unwrap();
     let (min, max) = dirs.iter().fold((initial, initial), |acc, val| {
         (acc.0.min(val), acc.1.max(val))
     });
     min.components()
-        .into_iter()
-        .zip(max.components().into_iter())
+        .zip(max.components())
         .map_while(|(n, x)| if x == n { Some(x.as_os_str()) } else { None })
         .collect::<PathBuf>()
 }
@@ -36,7 +35,9 @@ fn common_path(dirs: &Vec<PathBuf>) -> PathBuf {
 fn add_child(target: &mut Value, val: Value) {
     if let Some(target_obj) = target.as_object_mut() {
         if let Some(_children) = target_obj.get_mut("_children") {
-            _children.as_array_mut().and_then(|arr| Some(arr.push(val)));
+            if let Some(arr) = _children.as_array_mut() {
+                arr.push(val)
+            }
         } else {
             target_obj.insert("_children".to_string(), json!([val].to_vec()));
         }
@@ -56,7 +57,7 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
         .map(|dir| dir.strip_prefix(&common).unwrap())
         .fold(json!(Map::new()), |mut acc, val| {
             let len = val.components().count();
-            let mut comp_iter = val.components().into_iter().enumerate();
+            let mut comp_iter = val.components().enumerate();
             let original = common.join(val.clone()).to_string();
             let mut _ref = &mut acc;
             while let Some((count, p)) = comp_iter.next() {

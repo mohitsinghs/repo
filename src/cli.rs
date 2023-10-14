@@ -32,7 +32,7 @@ pub fn parse() -> ArgMatches {
                         .long("full")
                         .short('f')
                         .action(ArgAction::SetTrue)
-                        .conflicts_with_all(&["json", "tree"])
+                        .conflicts_with_all(["json", "tree"])
                         .help("Print repo paths separated by newline"),
                     Arg::new("json")
                         .long("json")

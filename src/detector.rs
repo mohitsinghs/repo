@@ -64,7 +64,7 @@ pub fn find_git_repos(
                         walk(
                             path,
                             &ttx,
-                            is_git_repo(path) && is_match(&path, Arc::clone(&terms)),
+                            is_git_repo(path) && is_match(path, Arc::clone(&terms)),
                         )
                     }
                 } else {

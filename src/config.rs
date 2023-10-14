@@ -40,7 +40,7 @@ impl Conf {
         let conf_file = conf_loc.join("repo.yml");
         if !conf_file.exists() {
             let data = serde_yaml::to_string(&Conf::default())?;
-            write(conf_file, &data).map_err(Error::from)
+            write(conf_file, data).map_err(Error::from)
         } else {
             Ok(())
         }
