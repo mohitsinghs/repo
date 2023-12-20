@@ -58,7 +58,7 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
         .fold(json!(Map::new()), |mut acc, val| {
             let len = val.components().count();
             let mut comp_iter = val.components().enumerate();
-            let original = common.join(val.clone()).to_string();
+            let original = common.join(val).to_string();
             let mut _ref = &mut acc;
             while let Some((count, p)) = comp_iter.next() {
                 let remaining = len - (count + 1);
