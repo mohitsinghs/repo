@@ -82,22 +82,34 @@ Where `z` can be any letter you bind. Hitting the tab will show you possible loc
 
 ## Configuration
 
-Your home directory will be used for search by default.
-The config lives in you config directory with name `repo.yml`.
+You can customize the behavior of repo by creating a configuration file named `repo.yml`.
 
-1. Create config.
+> [!TIP]
+> If no repo.yml file exists, the tool will search your home directory by default.
+
+### 1. Initializing Config
+
+To initiate a blank configuration file, execute the following command:
 
 ```sh
 repo init
 ```
 
-2. Add some root paths with or without depths.
+This creates the `repo.yml` file in your system's default configuration directory.
+
+### 2. Specifying Root Paths
+
+> [!WARNING]
+> Ensure paths are specified using the correct path syntax for your operating system.
+
+Define the directories you wish to include in the search. Each path can optionally specify a maximum traversal depth:
 
 ```yaml
 roots:
-  # paths will work fine
+  # Search all Git repositories within this directory:
   - path: /home/mohit/Projects
-  # optionally with depth
+
+  # Restrict the search to a depth of 2 levels within this directory:
   - path: /home/mohit/Work
     depth: 2
 ```
