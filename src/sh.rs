@@ -27,7 +27,10 @@ __repo_completion() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
     if [[ -n \"$TMUX\" ]]; then
-      tmux renamew $(basename $p)
+      tmux renamew $(basename $p) &2>/dev/null
+    fi
+    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" ]]; then
+      wezterm cli set-tab-title $(basename $p)  &2>/dev/null
     fi
 }}
 
@@ -49,7 +52,10 @@ __repo_completion() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
     if [[ -n \"$TMUX\" ]]; then
-      tmux renamew $(basename $p)
+      tmux renamew $(basename $p) &2>/dev/null
+    fi
+    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" ]]; then
+      wezterm cli set-tab-title $(basename $p) &2>/dev/null
     fi
 }}
 
