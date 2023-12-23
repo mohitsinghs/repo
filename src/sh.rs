@@ -26,11 +26,11 @@ __repo_completion() {{
 {binding}() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
-    if [[ -n \"$TMUX\" ]]; then
-      tmux renamew $(basename $p) &2>/dev/null
+    if [[ -n \"$TMUX\" && -n \"$p\" ]]; then
+      tmux renamew $(basename $p) >/dev/null 2>&1
     fi
-    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" ]]; then
-      wezterm cli set-tab-title $(basename $p)  &2>/dev/null
+    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" && -n \"$p\" ]]; then
+      wezterm cli set-tab-title $(basename $p) >/dev/null 2>&1
     fi
 }}
 
@@ -51,15 +51,32 @@ __repo_completion() {{
 {binding}() {{
     local p=\"$(repo cd $@)\"
     test -d \"$p\" && cd \"$p\"
-    if [[ -n \"$TMUX\" ]]; then
-      tmux renamew $(basename $p) &2>/dev/null
+    if [[ -n \"$TMUX\" && -n \"$p\" ]]; then
+      tmux renamew $(basename $p) >/dev/null 2>&1
     fi
-    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" ]]; then
-      wezterm cli set-tab-title $(basename $p) &2>/dev/null
+    if [[ \"$TERM_PROGRAM\" -eq \"WezTerm\" && -n \"$p\" ]]; then
+      wezterm cli set-tab-title $(basename $p) >/dev/null 2>&1
     fi
 }}
 
 complete -o dirnames -F '__repo_completion' {binding}",
+        ),
+
+        "fish" => println!(
+            "  # Put the line below in your fish config file (usually ~/.config/fish/config.fish):
+  #
+  #   source (repo sh fish -b {binding} | psub)
+   function {binding}
+      set p (repo cd $argv)
+      test -d \"$p\" && cd \"$p\"
+      if test -n \"$TMUX\" -a -n \"$p\"
+          tmux renamew (basename $p) >/dev/null 2>&1
+      end
+      if test \"$TERM_PROGRAM\" = \"WezTerm\" -a -n \"$p\"
+          wezterm cli set-tab-title (basename $p) >/dev/null 2>&1
+      end
+  end
+  complete -c {binding} -f -a \"(repo cmp $argv | tr ' ' '\n' )\""
         ),
         sh => {
             println!("unsupported shell : {}", sh);

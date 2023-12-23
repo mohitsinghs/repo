@@ -13,7 +13,7 @@ pub fn parse() -> ArgMatches {
                     Arg::new("shell")
                         .required(false)
                         .num_args(1)
-                        .value_parser(["zsh", "bash"])
+                        .value_parser(["zsh", "bash", "fish"])
                         .help("Current shell to generate completions for"),
                     Arg::new("bind")
                         .long("bind")
