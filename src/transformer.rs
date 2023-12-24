@@ -116,3 +116,67 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
 
     Ok(to_string(&val)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_json_eq(expected: &str, actual: &str) {
+        let expected_json: Value = serde_json::from_str(expected).unwrap();
+        let actual_json: Value = serde_json::from_str(actual).unwrap();
+        assert_eq!(expected_json, actual_json);
+    }
+
+    #[test]
+    fn test_as_tree_single_directory() {
+        let dirs = vec![PathBuf::from("/root/dir1")];
+        let result = as_tree(dirs).unwrap();
+        assert_json_eq(
+            &result,
+            r#"{"_children":[{"label":"dir1","location":"/root/dir1"}]}"#,
+        );
+    }
+
+    #[test]
+    fn test_as_tree_common_path() {
+        let dirs = vec![
+            PathBuf::from("/root/dir1/repo1"),
+            PathBuf::from("/root/dir1/repo2"),
+            PathBuf::from("/root/dir2/repo3"),
+        ];
+        let result = as_tree(dirs).unwrap();
+        assert_json_eq(
+            &result,
+            r#"{"dir1":[{"label":"repo1","location":"/root/dir1/repo1"},{"label":"repo2","location":"/root/dir1/repo2"}],"dir2":[{"label":"repo3","location":"/root/dir2/repo3"}]}"#,
+        );
+    }
+
+    #[test]
+    fn test_as_tree_different_levels() {
+        let dirs = vec![
+            PathBuf::from("/repo"),
+            PathBuf::from("/root/dir1/repo1"),
+            PathBuf::from("/root/dir1/dir2/dir3/dir4/repo4"),
+            PathBuf::from("/root/dir1/dir2/repo2"),
+            PathBuf::from("/root/dir1/dir2/repo3"),
+        ];
+        let result = as_tree(dirs).unwrap();
+        assert_json_eq(
+            &result,
+            r#"{"_children":[{"label":"repo","location":"/repo"}],"root":{"dir1":{"_children":[{"label":"repo1","location":"/root/dir1/repo1"}],"dir2":{"_children":[{"label":"repo2","location":"/root/dir1/dir2/repo2"},{"label":"repo3","location":"/root/dir1/dir2/repo3"}],"dir3":{"dir4":[{"label":"repo4","location":"/root/dir1/dir2/dir3/dir4/repo4"}]}}}}}"#,
+        );
+    }
+
+    #[test]
+    fn test_as_tree_shared_subdirectories() {
+        let dirs = vec![
+            PathBuf::from("/root/dir1/shared/repo1"),
+            PathBuf::from("/root/dir2/shared/repo2"),
+        ];
+        let result = as_tree(dirs).unwrap();
+        assert_json_eq(
+            &result,
+            r#"{"dir1":{"shared":[{"label":"repo1","location":"/root/dir1/shared/repo1"}]},"dir2":{"shared":[{"label":"repo2","location":"/root/dir2/shared/repo2"}]}}"#,
+        );
+    }
+}
