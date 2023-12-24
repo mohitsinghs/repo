@@ -15,7 +15,7 @@
 
 ## Features
 
-- **Fast** - takes **~8ms** to scan my entire drive and list all repositories.
+- **Fast** - takes under **60ms** to scan list my all repositories.
 - **Fuzzy matching** - can match paths partially.
 - **Shell integration** - Works with zsh and bash.
 - **Output formats** - supports plain and nested json output.
