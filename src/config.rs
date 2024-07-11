@@ -50,7 +50,8 @@ impl Conf {
 impl Root {
     pub fn expand(&self) -> Option<Self> {
         let expanded = tilde(&self.path).to_string();
-        if Path::new(&expanded).is_dir() {
+        let root_path = Path::new(&expanded);
+        if root_path.exists() && root_path.is_dir() {
             return Some(Root {
                 path: expanded,
                 depth: self.depth,

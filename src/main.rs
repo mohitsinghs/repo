@@ -44,6 +44,10 @@ fn main() {
                     .collect();
                 let repos = traverse_roots(conf.roots, Some(terms));
 
+                if repos.is_empty() {
+                    return;
+                };
+
                 if args.get_flag("full") {
                     println!("{}", as_paths(repos).join("\n"));
                 } else if args.get_flag("json") {
