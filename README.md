@@ -15,7 +15,6 @@
 
 ## Features
 
-- **Fast** - takes under **60ms** to scan list my all repositories.
 - **Fuzzy matching** - can match paths partially.
 - **Shell integration** - Works with zsh and bash.
 - **Output formats** - supports plain and nested json output.
@@ -32,35 +31,7 @@ Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) f
 
 ## Shell integration
 
-You can also run `repo sh` to see the setup instructions for your current shell if supported.
-
-### For zsh
-
-Put following in you `~/.zshrc`. The default binding is `z` but you can change it.
-
-```bash
-eval $(repo sh zsh)
-```
-
-Or if you prefer `x` or some other letter, use that
-
-```bash
-eval $(repo sh zsh -b x)
-```
-
-### For bash
-
-Put following in you `~/.bashrc` or `~/.bash_profile`. The default binding is `z` but you can change it.
-
-```bash
-eval $(repo sh bash)
-```
-
-Or if you prefer `x` or some other letter, use that
-
-```bash
-eval $(repo sh bash -b x)
-```
+You can run `repo sh` to see the setup instructions for your current shell if supported. Supported shells are `zsh`, `bash` and `fish`.
 
 ## Usage
 
