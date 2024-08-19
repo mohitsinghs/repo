@@ -29,6 +29,15 @@
 
 Download [latest release](https://github.com/mohitsinghs/repo/releases/latest) for your system and put it in the path.
 
+## Outputs
+
+| Command              | Output Type | Description                                |
+| -------------------- | ----------- | ------------------------------------------ |
+| `repo cmp`           | Text        | repository names separated by space        |
+| `repo cmp -f/--full` | Text        | full repository paths separated by newline |
+| `repo cmp -j/--json` | JSON        | paths and other metadata as a list         |
+| `repo cmp -t/--tree` | JSON        | paths and other metadata as a tree         |
+
 ## Shell integration
 
 You can run `repo sh` to see the setup instructions for your current shell if supported. Supported shells are `zsh`, `bash` and `fish`.
