@@ -45,6 +45,12 @@ pub fn parse() -> ArgMatches {
                         .short('t')
                         .action(ArgAction::SetTrue)
                         .help("Print matches as json tree"),
+                    Arg::new("config")
+                        .long("config")
+                        .short('c')
+                        .help("Config path or config JSON")
+                        .action(ArgAction::Set)
+                        .required(false),
                 ])
                 .about("Generate completions"),
         )

@@ -2,7 +2,7 @@ use config::Conf;
 use detector::traverse_roots;
 use matcher::find_match;
 use sh::{get_current_shell, print_completions};
-use std::process::exit;
+use std::{fs, path::Path, process::exit};
 use transformer::{as_json, as_path_names, as_paths, as_tree};
 
 mod cli;
@@ -15,7 +15,7 @@ mod transformer;
 
 fn main() {
     let matches = cli::parse();
-    let conf = Conf::read()
+    let mut conf = Conf::read()
         .map_err(|err| {
             println!("failed to read config: {}", err);
         })
@@ -37,6 +37,19 @@ fn main() {
                 print_completions(shell, binding)
             }
             "cmp" => {
+                let cfg = args.get_one::<String>("config");
+                if let Some(input) = cfg {
+                    if !input.is_empty() {
+                        conf = if Path::new(input).exists() {
+                            let value =
+                                fs::read_to_string(input).expect("failed to read config file");
+                            serde_yaml::from_str(&value).expect("failed to read yaml config")
+                        } else {
+                            serde_json::from_str(&input).expect("failed to parse json config")
+                        };
+                    }
+                }
+
                 let terms = args
                     .get_many::<String>("term")
                     .unwrap_or_default()
