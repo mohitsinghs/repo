@@ -76,6 +76,8 @@ fn find_meta(loc: &PathBuf) -> (String, String) {
                         "gitlab".to_string()
                     } else if line.contains("bitbucket.org") {
                         "bitbucket".to_string()
+                    } else if line.contains("ssh.dev.azure.com") {
+                        "azure".to_string()
                     } else {
                         "unknown".to_string()
                     }
