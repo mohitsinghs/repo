@@ -16,7 +16,7 @@
 ## Features
 
 - **Fuzzy matching** - can match paths partially.
-- **Shell integration** - Works with zsh and bash.
+- **Shell integration** - Works with zsh, bash and fish.
 - **Output formats** - supports plain and nested json output.
 - **Respects gitignore** - skips nested repositories that are ignored by git.
 - **Configurable** - you can add multiple roots and control scan depth for each.
