@@ -1,7 +1,7 @@
 use crate::path_extra::*;
 use anyhow::{Error, Result};
 use serde_json::{json, to_string, Map, Value};
-use std::{collections::BTreeMap, fs, mem::replace, path::PathBuf};
+use std::{fs, mem::replace, path::PathBuf};
 
 pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
@@ -14,10 +14,21 @@ pub fn as_paths(dirs: Vec<PathBuf>) -> Vec<String> {
 }
 
 pub fn as_json(dirs: Vec<PathBuf>) -> Result<String> {
-    let map: BTreeMap<String, String> = dirs
+    let map = dirs
         .into_iter()
-        .map(|d| (d.base().unwrap_or_default(), d.to_string()))
-        .collect();
+        .fold(json!(Map::new()), |mut acc: Value, val| {
+            let (branch, provider) = find_meta(&val);
+            let label = val.base().unwrap_or_default();
+            let value = json!({
+                "location": val.to_string(),
+                "label": label,
+                "branch": branch,
+                "provider": provider
+            });
+            acc.as_object_mut().and_then(|obj| obj.insert(label, value));
+            acc
+        });
+
     to_string(&map).map_err(Error::msg)
 }
 
