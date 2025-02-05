@@ -8,6 +8,7 @@ use transformer::{as_json, as_path_names, as_paths, as_tree};
 mod cli;
 mod config;
 mod detector;
+mod git;
 mod matcher;
 mod path_extra;
 mod sh;

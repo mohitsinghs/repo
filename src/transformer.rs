@@ -1,7 +1,10 @@
-use crate::path_extra::*;
+use crate::{
+    git::{detect_provider, load_aliases, resolve_url},
+    path_extra::*,
+};
 use anyhow::{Error, Result};
 use serde_json::{json, to_string, Map, Value};
-use std::{fs, mem::replace, path::PathBuf};
+use std::{collections::HashMap, fs, mem::replace, path::PathBuf};
 
 pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
@@ -14,10 +17,11 @@ pub fn as_paths(dirs: Vec<PathBuf>) -> Vec<String> {
 }
 
 pub fn as_json(dirs: Vec<PathBuf>) -> Result<String> {
+    let aliases = load_aliases();
     let map = dirs
         .into_iter()
         .fold(json!(Map::new()), |mut acc: Value, val| {
-            let (branch, provider) = find_meta(&val);
+            let (branch, provider) = find_meta(&val, &aliases);
             let label = val.base().unwrap_or_default();
             let value = json!({
                 "location": val.to_string(),
@@ -63,7 +67,7 @@ fn add_child(target: &mut Value, val: Value) {
     }
 }
 
-fn find_meta(loc: &PathBuf) -> (String, String) {
+fn find_meta(loc: &PathBuf, aliases: &HashMap<String, String>) -> (String, String) {
     let branch = fs::read_to_string(loc.join(".git/HEAD"))
         .ok()
         .and_then(|head_content| {
@@ -80,18 +84,10 @@ fn find_meta(loc: &PathBuf) -> (String, String) {
             config_content
                 .lines()
                 .find(|line| line.contains("url ="))
-                .map(|line| {
-                    if line.contains("github.com") {
-                        "github".to_string()
-                    } else if line.contains("gitlab.com") {
-                        "gitlab".to_string()
-                    } else if line.contains("bitbucket.org") {
-                        "bitbucket".to_string()
-                    } else if line.contains("ssh.dev.azure.com") {
-                        "azure".to_string()
-                    } else {
-                        "unknown".to_string()
-                    }
+                .and_then(|line| {
+                    let url = line.split("=").nth(1).map(|s| s.trim().to_string())?;
+                    let resolved_url = resolve_url(&url, aliases);
+                    Some(detect_provider(&resolved_url))
                 })
         })
         .unwrap_or_else(|| "unknown".to_string());
@@ -101,6 +97,7 @@ fn find_meta(loc: &PathBuf) -> (String, String) {
 
 // build a tree out of detected paths
 pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
+    let aliases = load_aliases();
     // if there's only one directory, use its parent
     // as the common path otherwise, find the common path
     let common = if dirs.len() == 1 {
@@ -121,7 +118,7 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
                 let remaining = len - (count + 1);
                 let current = part.to_str();
                 if remaining == 0 {
-                    let (branch, provider) = find_meta(&original);
+                    let (branch, provider) = find_meta(&original, &aliases);
                     let value = json!({
                         "location": original,
                         "label": current,
@@ -147,7 +144,7 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
                 } else {
                     // the only part remaining should be a git repo
                     let (_, base) = parts.next().unwrap();
-                    let (branch, provider) = find_meta(&original);
+                    let (branch, provider) = find_meta(&original, &aliases);
                     let value = json!({
                         "location": original,
                         "label": base.to_str(),
