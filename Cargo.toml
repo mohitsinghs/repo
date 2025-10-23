@@ -7,15 +7,15 @@ description = "Jump between repositories"
 repository = "https://github.com/mohitsighs/repo"
 
 [dependencies]
-anyhow = "1.0.95"
-clap = { version = "4.5.28", features = ["cargo"] }
+anyhow = "1.0.100"
+clap = { version = "4.5.50", features = ["cargo"] }
 dirs = "6.0.0"
 fuzzy-matcher = "0.3.7"
-ignore = "0.4.23"
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.138"
+ignore = "0.4.24"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
 serde_yaml = "0.9.34"
-shellexpand = "3.1.0"
+shellexpand = "3.1.1"
 
 [profile.release]
 opt-level = 'z'
