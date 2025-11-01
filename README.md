@@ -62,10 +62,10 @@ Where `z` can be any letter you bind. Hitting the tab will show you possible loc
 
 ## Configuration
 
-You can customize the behavior of repo by creating a configuration file named `repo.yml`.
+You can customize the behavior of repo by creating a configuration file named `repo.json`.
 
 > [!TIP]
-> If no repo.yml file exists, the tool will search your home directory by default.
+> If no `repo.json` file exists, the tool will search your home directory by default.
 
 ### 1. Initializing Config
 
@@ -75,7 +75,7 @@ To initiate a blank configuration file, execute the following command:
 repo init
 ```
 
-This creates the `repo.yml` file in your system's default configuration directory.
+This creates the `repo.json` file in your system's default configuration directory.
 
 ### 2. Specifying Root Paths
 
@@ -84,12 +84,16 @@ This creates the `repo.yml` file in your system's default configuration director
 
 Define the directories you wish to include in the search. Each path can optionally specify a maximum traversal depth:
 
-```yaml
-roots:
-  # Search all Git repositories within this directory:
-  - path: /home/mohit/Projects
-
-  # Restrict the search to a depth of 2 levels within this directory:
-  - path: /home/mohit/Work
-    depth: 2
+```json
+{
+  "roots": [
+    {
+      "path": "/home/mohit/Projects"
+    },
+    {
+      "path": "/home/mohit/Work",
+      "depth": 2
+    }
+  ]
+}
 ```

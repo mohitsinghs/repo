@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-#[derive(Debug, Deserialize, Default, Serialize)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Root {
     #[serde(default)]
     pub path: String,
@@ -22,10 +22,10 @@ pub struct Conf {
 
 impl Conf {
     pub fn read() -> Result<Self> {
-        let conf_file = config_dir().unwrap_or_default().join("repo.yml");
+        let conf_file = config_dir().unwrap_or_default().join("repo.json");
         if conf_file.exists() && conf_file.is_file() {
             let content = read_to_string(conf_file)?;
-            let data: Conf = serde_yaml::from_str(&content)?;
+            let data: Conf = serde_json::from_str(&content)?;
             Ok(data)
         } else {
             Ok(Conf::default())
@@ -37,9 +37,9 @@ impl Conf {
         if !conf_loc.exists() {
             create_dir_all(conf_loc.as_path()).context("failed to write config")?;
         }
-        let conf_file = conf_loc.join("repo.yml");
+        let conf_file = conf_loc.join("repo.json");
         if !conf_file.exists() {
-            let data = serde_yaml::to_string(&Conf::default())?;
+            let data = serde_json::to_string_pretty(&Conf::default())?;
             write(conf_file, data).map_err(Error::from)
         } else {
             Ok(())

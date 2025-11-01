@@ -44,7 +44,7 @@ fn main() {
                         conf = if Path::new(input).exists() {
                             let value =
                                 fs::read_to_string(input).expect("failed to read config file");
-                            serde_yaml::from_str(&value).expect("failed to read yaml config")
+                            serde_json::from_str(&value).expect("failed to read json config")
                         } else {
                             serde_json::from_str(&input).expect("failed to parse json config")
                         };
