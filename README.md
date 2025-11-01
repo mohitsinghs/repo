@@ -58,7 +58,7 @@ Where `z` can be any letter you bind. Hitting the tab will show you possible loc
 ## Editor Integration
 
 - **Neovim** - [repo.nvim](https://github.com/mohitsinghs/repo.nvim) is a neovim plugin that uses [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
-- **VSCode** - [vscode-repo](https://github.com/mohitsinghs/vscode-repo) can be installed from the [marketplace](https://marketplace.visualstudio.com/items?itemName=mohitsingh.repo) or from the `vsix` files under releases.
+- **VSCode** - [vscode-repo](https://github.com/mohitsinghs/vscode-repo) can be installed from the `vsix` files under releases.
 
 ## Configuration
 
