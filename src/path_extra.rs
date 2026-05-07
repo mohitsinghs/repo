@@ -1,4 +1,4 @@
-use std::path::{Component, Path};
+use std::path::Path;
 
 // Some helper methods to convert Path and PathBuf to String or str
 pub trait PathExtra {
@@ -20,16 +20,5 @@ impl PathExtra for Path {
 
     fn base_lowercase(&self) -> String {
         self.base().map(|p| p.to_lowercase()).unwrap_or_default()
-    }
-}
-
-// Some helper methods to convert Path and PathBuf
-pub trait CompExtra {
-    fn to_str(&self) -> &str;
-}
-
-impl CompExtra for Component<'_> {
-    fn to_str(&self) -> &str {
-        self.as_os_str().to_str().unwrap_or_default()
     }
 }

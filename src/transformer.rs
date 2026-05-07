@@ -3,8 +3,55 @@ use crate::{
     path_extra::*,
 };
 use anyhow::{Error, Result};
-use serde_json::{json, to_string, Map, Value};
-use std::{collections::HashMap, fs, mem::replace, path::PathBuf};
+use serde::{ser::SerializeMap, Serialize, Serializer};
+use serde_json::{json, to_string, Map};
+use std::{collections::HashMap, fs, path::PathBuf};
+
+#[derive(Serialize)]
+pub struct RepoMeta {
+    location: PathBuf,
+    label: String,
+    branch: String,
+    provider: String,
+}
+
+#[derive(Default)]
+pub struct TrieNode {
+    repos: Vec<RepoMeta>,
+    subdirs: HashMap<String, TrieNode>,
+}
+
+impl TrieNode {
+    fn insert(&mut self, components: Vec<&str>, repo: RepoMeta) {
+        if let Some((_, dirs)) = components.split_last() {
+            let mut current: &mut TrieNode = self;
+            for dir in dirs {
+                current = current.subdirs.entry(dir.to_string()).or_default()
+            }
+            current.repos.push(repo)
+        }
+    }
+}
+
+impl Serialize for TrieNode {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if self.subdirs.is_empty() {
+            self.repos.serialize(serializer)
+        } else {
+            let mut map = serializer.serialize_map(None)?;
+            if !self.repos.is_empty() {
+                map.serialize_entry("_children", &self.repos)?;
+            }
+            for (k, v) in &self.subdirs {
+                map.serialize_entry(k, v)?;
+            }
+            map.end()
+        }
+    }
+}
 
 pub fn as_path_names(dirs: Vec<PathBuf>) -> Vec<String> {
     dirs.into_iter()
@@ -18,21 +65,19 @@ pub fn as_paths(dirs: Vec<PathBuf>) -> Vec<String> {
 
 pub fn as_json(dirs: Vec<PathBuf>) -> Result<String> {
     let aliases = load_aliases();
-    let map = dirs
-        .into_iter()
-        .fold(json!(Map::new()), |mut acc: Value, val| {
-            let (branch, provider) = find_meta(&val, &aliases);
-            let label = val.base().unwrap_or_default();
-            let value = json!({
-                "location": val.to_string(),
-                "label": label,
-                "branch": branch,
-                "provider": provider
-            });
-            acc.as_object_mut().and_then(|obj| obj.insert(label, value));
-            acc
-        });
+    let mut map = HashMap::new();
 
+    for val in dirs {
+        let (branch, provider) = find_meta(&val, &aliases);
+        let label = val.base().unwrap_or_default();
+        let value = json!({
+            "location": val.to_string(),
+            "label": label,
+            "branch": branch,
+            "provider": provider
+        });
+        map.insert(label, value);
+    }
     to_string(&map).map_err(Error::msg)
 }
 
@@ -46,25 +91,6 @@ fn common_path(dirs: &[PathBuf]) -> PathBuf {
         .zip(max.components())
         .map_while(|(n, x)| if x == n { Some(x.as_os_str()) } else { None })
         .collect::<PathBuf>()
-}
-
-/**
-* add a child to target object. If target is an object, we insert current
-* child under a key `_children` as an array and if target is an array
-* we push current value to it directly.
-* */
-fn add_child(target: &mut Value, val: Value) {
-    if let Some(target_obj) = target.as_object_mut() {
-        if let Some(_children) = target_obj.get_mut("_children") {
-            if let Some(arr) = _children.as_array_mut() {
-                arr.push(val)
-            }
-        } else {
-            target_obj.insert("_children".to_string(), json!([val].to_vec()));
-        }
-    } else if let Some(arr) = target.as_array_mut() {
-        arr.push(val);
-    }
 }
 
 fn find_meta(loc: &PathBuf, aliases: &HashMap<String, String>) -> (String, String) {
@@ -97,6 +123,9 @@ fn find_meta(loc: &PathBuf, aliases: &HashMap<String, String>) -> (String, Strin
 
 // build a tree out of detected paths
 pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
+    if dirs.is_empty() {
+        return Ok("{}".to_string());
+    }
     let aliases = load_aliases();
     // if there's only one directory, use its parent
     // as the common path otherwise, find the common path
@@ -106,69 +135,37 @@ pub fn as_tree(dirs: Vec<PathBuf>) -> Result<String> {
         common_path(&dirs)
     };
 
-    let val = dirs
-        .iter()
-        .map(|dir| dir.strip_prefix(&common).unwrap())
-        .fold(json!(Map::new()), |mut acc, val| {
-            let len = val.components().count();
-            let mut parts = val.components().enumerate();
-            let original = common.join(val);
-            let mut _ref = &mut acc;
-            while let Some((count, part)) = parts.next() {
-                let remaining = len - (count + 1);
-                let current = part.to_str();
-                if remaining == 0 {
-                    let (branch, provider) = find_meta(&original, &aliases);
-                    let value = json!({
-                        "location": original,
-                        "label": current,
-                        "branch": branch,
-                        "provider": provider
-                    });
-                    add_child(_ref, value)
-                } else if remaining > 1 {
-                    // we've got a directory, but we've array of repos, so
-                    // let convert that to object and move array under `_children`
-                    if _ref.is_array() {
-                        let children = replace(_ref, json!(Map::new()));
-                        let mut _ref_obj = _ref.as_object_mut().unwrap();
-                        _ref_obj.insert("_children".to_string(), json!(children));
-                    }
-                    // finally let's create empty object under our new object
-                    // with directory name as key and descend to it
-                    _ref = _ref
-                        .as_object_mut()
-                        .unwrap()
-                        .entry(current)
-                        .or_insert(json!(Map::new()));
-                } else {
-                    // the only part remaining should be a git repo
-                    let (_, base) = parts.next().unwrap();
-                    let (branch, provider) = find_meta(&original, &aliases);
-                    let value = json!({
-                        "location": original,
-                        "label": base.to_str(),
-                        "branch": branch,
-                        "provider": provider
-                    });
-                    // now let's insert this repo with current directory as key
-                    if let Some(_obj) = _ref.as_object_mut() {
-                        if let Some(_key) = _obj.get_mut(current) {
-                            add_child(_key, value);
-                        } else {
-                            _obj.insert(current.to_string(), json!([value].to_vec()));
-                        }
-                    }
-                }
-            }
-            acc
-        });
+    let mut root = TrieNode::default();
+    for dir in dirs {
+        let stripped = dir.strip_prefix(&common).unwrap();
+        let components: Vec<&str> = stripped
+            .components()
+            .map(|c| c.as_os_str().to_str().unwrap_or_default())
+            .collect();
+        let (branch, provider) = find_meta(&dir, &aliases);
+        let label = dir.base().unwrap_or_default();
 
-    Ok(to_string(&val)?)
+        let meta = RepoMeta {
+            location: dir.clone(),
+            label,
+            branch,
+            provider,
+        };
+        root.insert(components, meta);
+    }
+    if root.subdirs.is_empty() && !root.repos.is_empty() {
+        let mut map = Map::new();
+        map.insert("_children".to_string(), json!(&root.repos));
+        return Ok(to_string(&map)?);
+    } else {
+        return Ok(to_string(&root)?);
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
     use super::*;
 
     fn assert_json_eq(expected: &str, actual: &str) {
