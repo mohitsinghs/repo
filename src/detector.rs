@@ -1,6 +1,6 @@
 use crate::{config::Root, matcher::is_match};
 use dirs::home_dir;
-use ignore::{WalkBuilder, WalkState};
+use ignore::{DirEntry, WalkBuilder, WalkState};
 use std::{
     path::{Path, PathBuf},
     sync::{
@@ -9,14 +9,14 @@ use std::{
     },
 };
 
-pub fn walk(path: &Path, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
+pub fn walk(entry: &DirEntry, ttx: &Sender<PathBuf>, is_match: bool) -> WalkState {
     if is_match {
-        let s = ttx.send(path.to_path_buf());
+        let s = ttx.send(entry.path().to_path_buf());
         if s.is_err() {
             return WalkState::Quit;
         }
         WalkState::Skip
-    } else if path.is_dir() {
+    } else if entry.file_type().map_or(false, |f| f.is_dir()) {
         WalkState::Continue
     } else {
         WalkState::Skip
@@ -59,12 +59,12 @@ pub fn find_git_repos(
                     }
 
                     if terms.is_empty() {
-                        walk(path, &ttx, is_git_repo(path))
+                        walk(&entry, &ttx, is_git_repo(&entry))
                     } else {
                         walk(
-                            path,
+                            &entry,
                             &ttx,
-                            is_git_repo(path) && is_match(path, Arc::clone(&terms)),
+                            is_git_repo(&entry) && is_match(path, Arc::clone(&terms)),
                         )
                     }
                 } else {
@@ -100,6 +100,6 @@ pub fn traverse_roots(roots: Vec<Root>, terms: Option<Vec<&str>>) -> Vec<PathBuf
     }
 }
 
-pub fn is_git_repo(loc: &Path) -> bool {
-    loc.is_dir() && loc.join(".git").join("config").exists()
+pub fn is_git_repo(loc: &DirEntry) -> bool {
+    loc.file_type().map_or(false, |f| f.is_dir()) && loc.path().join(".git/config").exists()
 }
